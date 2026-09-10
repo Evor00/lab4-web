@@ -1,0 +1,601 @@
+<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="NeptunoDB - Sistema de Gestión ADO.NET (Semana 04)" 
+        Height="720" Width="1180" 
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Header -->
+            <RowDefinition Height="Auto"/>
+            <!-- Status & Connection Banner -->
+            <RowDefinition Height="Auto"/>
+            <!-- Main Content Tabs -->
+            <RowDefinition Height="*"/>
+            <!-- Footer / Status Bar -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="20,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="SISTEMA NEPTUNO - ADO.NET SEMANA 04" 
+                               Foreground="White" FontSize="20" FontWeight="Bold"/>
+                    <TextBlock Text="Mantenimiento CRUD de Productos, Categorías, Proveedores, Pedidos y Reportes con Filtro de Fechas" 
+                               Foreground="#CBD5E1" FontSize="12" Margin="0,3,0,0"/>
+                </StackPanel>
+
+                <!-- Connection Config Button -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="btnConfigConexion" Content="⚙ Cadena de Conexión" 
+                            Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" Click="BtnConfigConexion_Click"/>
+                    <Button x:Name="btnProbarConexion" Content="🔌 Probar SQL Server" 
+                            Style="{StaticResource PrimaryButton}" Background="#3B82F6" Click="BtnProbarConexion_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- BANNER DE CONEXIÓN / DEMO -->
+        <Border x:Name="pnlBannerConexion" Grid.Row="1" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="0,0,0,1" Padding="15,6" Visibility="Visible">
+            <DockPanel>
+                <TextBlock x:Name="txtEstadoConexion" Text="ℹ Modo de Demostración Activo (Si SQL Server está activo, presione 'Probar SQL Server' para conectar a la BD)." 
+                           Foreground="#92400E" FontWeight="Medium" FontSize="12" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- PANEL DE CONFIGURACIÓN DE CADENA DE CONEXIÓN (Colapsable) -->
+        <Border x:Name="pnlConfigConexion" Grid.Row="1" Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="0,0,0,2" Padding="15,10" Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Cadena de Conexión SQL:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtCadenaConexion" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Button x:Name="btnGuardarCadena" Grid.Column="2" Content="Guardar y Conectar" Style="{StaticResource SuccessButton}" Margin="0,0,6,0" Click="BtnGuardarCadena_Click"/>
+                <Button x:Name="btnCerrarConfig" Grid.Column="3" Content="✕" Style="{StaticResource SecondaryButton}" Width="30" Click="BtnCerrarConfig_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- CONTENIDO PRINCIPAL: PESTAÑAS -->
+        <TabControl Grid.Row="2" Margin="15,10,15,10" Background="Transparent" BorderThickness="0">
+
+            <!-- ========================================================
+                 PESTAÑA 1: MANTENIMIENTO DE PRODUCTOS (CRUD)
+                 ======================================================== -->
+            <TabItem Header="📦 Productos">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="360"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Formulario de Productos -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,10,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="Mantenimiento de Productos" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
+
+                                <Label Content="Producto ID:"/>
+                                <TextBox x:Name="txtProdId" IsReadOnly="True" Background="#F3F4F6" Margin="0,0,0,8"/>
+
+                                <Label Content="Nombre del Producto (*):"/>
+                                <TextBox x:Name="txtProdNombre" Margin="0,0,0,8"/>
+
+                                <Label Content="Categoría:"/>
+                                <ComboBox x:Name="cboProdCategoria" DisplayMemberPath="NombreCategoria" SelectedValuePath="CategoriaID" Margin="0,0,0,8"/>
+
+                                <Label Content="Proveedor:"/>
+                                <ComboBox x:Name="cboProdProveedor" DisplayMemberPath="CompaniaNombre" SelectedValuePath="ProveedorID" Margin="0,0,0,8"/>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <Label Content="Cant. por Unidad:"/>
+                                        <TextBox x:Name="txtProdCantidadUnidad"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <Label Content="Precio Unidad (*):"/>
+                                        <TextBox x:Name="txtProdPrecio"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <Label Content="Stock:"/>
+                                        <TextBox x:Name="txtProdExistencia"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <Label Content="En Pedido:"/>
+                                        <TextBox x:Name="txtProdPedido"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="4">
+                                        <Label Content="Reorden:"/>
+                                        <TextBox x:Name="txtProdReorden"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <CheckBox x:Name="chkProdDescontinuado" Content="Producto Descontinuado" Margin="0,4,0,14" FontWeight="Medium"/>
+
+                                <!-- Botonera CRUD -->
+                                <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,0">
+                                    <Button x:Name="btnProdNuevo" Content="Nuevo" Style="{StaticResource PrimaryButton}" Margin="3" Width="75" Click="BtnProdNuevo_Click"/>
+                                    <Button x:Name="btnProdGuardar" Content="Guardar" Style="{StaticResource SuccessButton}" Margin="3" Width="75" Click="BtnProdGuardar_Click"/>
+                                    <Button x:Name="btnProdActualizar" Content="Actualizar" Style="{StaticResource PrimaryButton}" Margin="3" Width="75" Click="BtnProdActualizar_Click"/>
+                                    <Button x:Name="btnProdEliminar" Content="Eliminar" Style="{StaticResource DangerButton}" Margin="3" Width="75" Click="BtnProdEliminar_Click"/>
+                                    <Button x:Name="btnProdLimpiar" Content="Limpiar" Style="{StaticResource SecondaryButton}" Margin="3" Width="75" Click="BtnProdLimpiar_Click"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- DataGrid de Productos -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Listado de Productos (sp_ListarProductos)" FontSize="15" FontWeight="Bold" Margin="4,0,0,8" Foreground="#334155"/>
+                            <DataGrid x:Name="dgProductos" Grid.Row="1" SelectionChanged="DgProductos_SelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding ProductoID}" Width="50"/>
+                                    <DataGridTextColumn Header="Producto" Binding="{Binding NombreProducto}" Width="160"/>
+                                    <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="110"/>
+                                    <DataGridTextColumn Header="Proveedor" Binding="{Binding Proveedor}" Width="150"/>
+                                    <DataGridTextColumn Header="Cant. Unidad" Binding="{Binding CantidadPorUnidad}" Width="90"/>
+                                    <DataGridTextColumn Header="Precio" Binding="{Binding PrecioUnidad, StringFormat=C2}" Width="80"/>
+                                    <DataGridTextColumn Header="Stock" Binding="{Binding UnidadesEnExistencia}" Width="60"/>
+                                    <DataGridTextColumn Header="Pedido" Binding="{Binding UnidadesEnPedido}" Width="60"/>
+                                    <DataGridCheckBoxColumn Header="Desc." Binding="{Binding Descontinuado}" Width="50"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========================================================
+                 PESTAÑA 2: MANTENIMIENTO DE CATEGORÍAS (CRUD)
+                 ======================================================== -->
+            <TabItem Header="📂 Categorías">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="360"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Formulario de Categorías -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,10,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Mantenimiento de Categorías" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12"/>
+
+                            <Label Content="Categoría ID:"/>
+                            <TextBox x:Name="txtCatId" IsReadOnly="True" Background="#F3F4F6" Margin="0,0,0,10"/>
+
+                            <Label Content="Nombre de Categoría (*):"/>
+                            <TextBox x:Name="txtCatNombre" Margin="0,0,0,10"/>
+
+                            <Label Content="Descripción:"/>
+                            <TextBox x:Name="txtCatDescripcion" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16"/>
+
+                            <WrapPanel HorizontalAlignment="Center">
+                                <Button x:Name="btnCatNuevo" Content="Nuevo" Style="{StaticResource PrimaryButton}" Margin="3" Width="75" Click="BtnCatNuevo_Click"/>
+                                <Button x:Name="btnCatGuardar" Content="Guardar" Style="{StaticResource SuccessButton}" Margin="3" Width="75" Click="BtnCatGuardar_Click"/>
+                                <Button x:Name="btnCatActualizar" Content="Actualizar" Style="{StaticResource PrimaryButton}" Margin="3" Width="75" Click="BtnCatActualizar_Click"/>
+                                <Button x:Name="btnCatEliminar" Content="Eliminar" Style="{StaticResource DangerButton}" Margin="3" Width="75" Click="BtnCatEliminar_Click"/>
+                                <Button x:Name="btnCatLimpiar" Content="Limpiar" Style="{StaticResource SecondaryButton}" Margin="3" Width="75" Click="BtnCatLimpiar_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- DataGrid de Categorías -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Listado de Categorías (sp_ListarCategorias)" FontSize="15" FontWeight="Bold" Margin="4,0,0,8" Foreground="#334155"/>
+                            <DataGrid x:Name="dgCategorias" Grid.Row="1" SelectionChanged="DgCategorias_SelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding CategoriaID}" Width="60"/>
+                                    <DataGridTextColumn Header="Nombre de Categoría" Binding="{Binding NombreCategoria}" Width="180"/>
+                                    <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========================================================
+                 PESTAÑA 3: MANTENIMIENTO DE PROVEEDORES + BÚSQUEDA
+                 ======================================================== -->
+            <TabItem Header="🚚 Proveedores">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <!-- Filtros de Búsqueda -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Contenido Principal (Formulario + DataGrid) -->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Panel de Búsqueda con Filtros (Item 7 & 11a) -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15,10" Margin="0,0,0,10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="220"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="🔍 Nombre Contacto:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox x:Name="txtFiltroContacto" Grid.Column="1" Margin="0,0,15,0"/>
+
+                            <TextBlock Grid.Column="2" Text="📍 Ciudad:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox x:Name="txtFiltroCiudad" Grid.Column="3" Margin="0,0,15,0"/>
+
+                            <StackPanel Grid.Column="4" Orientation="Horizontal">
+                                <Button x:Name="btnBuscarProveedor" Content="Buscar (sp_BuscarProveedores)" 
+                                        Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" Click="BtnBuscarProveedor_Click"/>
+                                <Button x:Name="btnLimpiarFiltroProv" Content="Mostrar Todos" 
+                                        Style="{StaticResource SecondaryButton}" Click="BtnLimpiarFiltroProv_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Formulario y Grilla de Proveedores -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="380"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Formulario de Proveedor -->
+                        <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,10,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="Mantenimiento de Proveedores" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,10"/>
+
+                                    <Label Content="Proveedor ID:"/>
+                                    <TextBox x:Name="txtProvId" IsReadOnly="True" Background="#F3F4F6" Margin="0,0,0,6"/>
+
+                                    <Label Content="Nombre de Compañía (*):"/>
+                                    <TextBox x:Name="txtProvCompania" Margin="0,0,0,6"/>
+
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <Label Content="Nombre Contacto:"/>
+                                            <TextBox x:Name="txtProvContacto"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <Label Content="Cargo Contacto:"/>
+                                            <TextBox x:Name="txtProvCargo"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Label Content="Dirección:"/>
+                                    <TextBox x:Name="txtProvDireccion" Margin="0,0,0,6"/>
+
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <Label Content="Ciudad:"/>
+                                            <TextBox x:Name="txtProvCiudad"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <Label Content="Código Postal:"/>
+                                            <TextBox x:Name="txtProvCodPostal"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <Label Content="País:"/>
+                                            <TextBox x:Name="txtProvPais"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <Label Content="Teléfono:"/>
+                                            <TextBox x:Name="txtProvTelefono"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Label Content="Fax:"/>
+                                    <TextBox x:Name="txtProvFax" Margin="0,0,0,12"/>
+
+                                    <WrapPanel HorizontalAlignment="Center">
+                                        <Button x:Name="btnProvNuevo" Content="Nuevo" Style="{StaticResource PrimaryButton}" Margin="3" Width="70" Click="BtnProvNuevo_Click"/>
+                                        <Button x:Name="btnProvGuardar" Content="Guardar" Style="{StaticResource SuccessButton}" Margin="3" Width="70" Click="BtnProvGuardar_Click"/>
+                                        <Button x:Name="btnProvActualizar" Content="Actualizar" Style="{StaticResource PrimaryButton}" Margin="3" Width="70" Click="BtnProvActualizar_Click"/>
+                                        <Button x:Name="btnProvEliminar" Content="Eliminar" Style="{StaticResource DangerButton}" Margin="3" Width="70" Click="BtnProvEliminar_Click"/>
+                                        <Button x:Name="btnProvLimpiar" Content="Limpiar" Style="{StaticResource SecondaryButton}" Margin="3" Width="70" Click="BtnProvLimpiar_Click"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- DataGrid de Proveedores -->
+                        <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Text="Listado de Proveedores" FontSize="15" FontWeight="Bold" Margin="4,0,0,8" Foreground="#334155"/>
+                                <DataGrid x:Name="dgProveedores" Grid.Row="1" SelectionChanged="DgProveedores_SelectionChanged">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding ProveedorID}" Width="45"/>
+                                        <DataGridTextColumn Header="Compañía" Binding="{Binding CompaniaNombre}" Width="160"/>
+                                        <DataGridTextColumn Header="Contacto" Binding="{Binding NombreContacto}" Width="130"/>
+                                        <DataGridTextColumn Header="Cargo" Binding="{Binding CargoContacto}" Width="140"/>
+                                        <DataGridTextColumn Header="Ciudad" Binding="{Binding Ciudad}" Width="90"/>
+                                        <DataGridTextColumn Header="País" Binding="{Binding Pais}" Width="80"/>
+                                        <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="100"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ========================================================
+                 PESTAÑA 4: PEDIDOS Y REPORTES
+                 ======================================================== -->
+            <TabItem Header="📑 Pedidos y Reportes">
+                <TabControl Margin="0,10,0,0" Background="Transparent" BorderThickness="0">
+
+                    <!-- Sub-pestaña 4.1: Mantenimiento de Pedidos -->
+                    <TabItem Header="📋 Mantenimiento de Pedidos (CRUD)">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="380"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Formulario de Pedidos -->
+                            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,10,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <TextBlock Text="Mantenimiento de Pedidos" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,10"/>
+
+                                        <Label Content="Pedido ID:"/>
+                                        <TextBox x:Name="txtPedId" IsReadOnly="True" Background="#F3F4F6" Margin="0,0,0,6"/>
+
+                                        <Label Content="Cliente:"/>
+                                        <ComboBox x:Name="cboPedCliente" DisplayMemberPath="Empresa" SelectedValuePath="ClienteID" Margin="0,0,0,6"/>
+
+                                        <Label Content="Empleado:"/>
+                                        <ComboBox x:Name="cboPedEmpleado" DisplayMemberPath="NombreCompleto" SelectedValuePath="EmpleadoID" Margin="0,0,0,6"/>
+
+                                        <Label Content="Transportista:"/>
+                                        <ComboBox x:Name="cboPedTransportista" DisplayMemberPath="CompaniaNombre" SelectedValuePath="TransportistaID" Margin="0,0,0,6"/>
+
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <Label Content="Fecha Pedido (*):"/>
+                                                <DatePicker x:Name="dpPedFechaPedido"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <Label Content="Fecha Requerida:"/>
+                                                <DatePicker x:Name="dpPedFechaRequerida"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <Label Content="Fecha Envío:"/>
+                                        <DatePicker x:Name="dpPedFechaEnvio" Margin="0,0,0,6"/>
+
+                                        <Label Content="Destinatario:"/>
+                                        <TextBox x:Name="txtPedDestinatario" Margin="0,0,0,6"/>
+
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="8"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <Label Content="Ciudad Destino:"/>
+                                                <TextBox x:Name="txtPedCiudadDestino"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2">
+                                                <Label Content="País Destino:"/>
+                                                <TextBox x:Name="txtPedPaisDestino"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <WrapPanel HorizontalAlignment="Center">
+                                            <Button x:Name="btnPedNuevo" Content="Nuevo" Style="{StaticResource PrimaryButton}" Margin="3" Width="70" Click="BtnPedNuevo_Click"/>
+                                            <Button x:Name="btnPedGuardar" Content="Guardar" Style="{StaticResource SuccessButton}" Margin="3" Width="70" Click="BtnPedGuardar_Click"/>
+                                            <Button x:Name="btnPedActualizar" Content="Actualizar" Style="{StaticResource PrimaryButton}" Margin="3" Width="70" Click="BtnPedActualizar_Click"/>
+                                            <Button x:Name="btnPedEliminar" Content="Eliminar" Style="{StaticResource DangerButton}" Margin="3" Width="70" Click="BtnPedEliminar_Click"/>
+                                            <Button x:Name="btnPedLimpiar" Content="Limpiar" Style="{StaticResource SecondaryButton}" Margin="3" Width="70" Click="BtnPedLimpiar_Click"/>
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- DataGrid de Pedidos -->
+                            <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Listado de Pedidos (sp_ListarPedidos)" FontSize="15" FontWeight="Bold" Margin="4,0,0,8" Foreground="#334155"/>
+                                    <DataGrid x:Name="dgPedidos" Grid.Row="1" SelectionChanged="DgPedidos_SelectionChanged">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Pedido ID" Binding="{Binding PedidoID}" Width="70"/>
+                                            <DataGridTextColumn Header="Cliente" Binding="{Binding Cliente}" Width="150"/>
+                                            <DataGridTextColumn Header="Empleado" Binding="{Binding Empleado}" Width="140"/>
+                                            <DataGridTextColumn Header="F. Pedido" Binding="{Binding FechaPedido, StringFormat=dd/MM/yyyy}" Width="90"/>
+                                            <DataGridTextColumn Header="Destinatario" Binding="{Binding Destinatario}" Width="150"/>
+                                            <DataGridTextColumn Header="Ciudad" Binding="{Binding CiudadDestino}" Width="90"/>
+                                            <DataGridTextColumn Header="Transportista" Binding="{Binding Transportista}" Width="140"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Sub-pestaña 4.2: Reporte de Detalles con INNER JOIN y Filtro de Fechas -->
+                    <TabItem Header="📊 Reporte Detalle Pedidos (Filtro Fechas)">
+                        <Grid Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <!-- Barra de Filtros -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- Resumen / Estadísticas -->
+                                <RowDefinition Height="Auto"/>
+                                <!-- DataGrid del Reporte -->
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Panel de Filtro de Fechas (Item 8 & 12a) -->
+                            <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15,12" Margin="0,0,0,10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="📅 Fecha Inicio:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <DatePicker x:Name="dpReporteInicio" Grid.Column="1" Margin="0,0,15,0"/>
+
+                                    <TextBlock Grid.Column="2" Text="📅 Fecha Fin:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <DatePicker x:Name="dpReporteFin" Grid.Column="3" Margin="0,0,15,0"/>
+
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+                                        <Button x:Name="btnGenerarReporte" Content="📊 Filtrar Reporte (sp_ReporteDetallePedidosPorFechas)" 
+                                                Style="{StaticResource PrimaryButton}" Margin="0,0,8,0" Click="BtnGenerarReporte_Click"/>
+                                        <Button x:Name="btnRestablecerFechas" Content="↺ Rango Predeterminado" 
+                                                Style="{StaticResource SecondaryButton}" Click="BtnRestablecerFechas_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tarjetas de Resumen -->
+                            <Grid Grid.Row="1" Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15,10" Margin="0,0,5,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="TOTAL REGISTROS DETALLE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource LightTextBrush}"/>
+                                        <TextBlock x:Name="lblReporteCantidad" Text="0 registros" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="15,10" Margin="5,0,5,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="IMPORTE TOTAL ACUMULADO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource LightTextBrush}"/>
+                                        <TextBlock x:Name="lblReporteTotal" Text="S/ 0.00" FontSize="18" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="15,10" Margin="5,0,0,0" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="PROCEDIMIENTO ALMACENADO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource LightTextBrush}"/>
+                                        <TextBlock Text="sp_ReporteDetallePedidosPorFechas" FontSize="14" FontWeight="SemiBold" Foreground="#475569" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Grilla del Reporte -->
+                            <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="10" BorderBrush="{StaticResource BorderBrushColor}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="Detalle de Pedidos (INNER JOIN con Pedidos y Productos)" FontSize="15" FontWeight="Bold" Margin="4,0,0,8" Foreground="#334155"/>
+                                    <DataGrid x:Name="dgReporteDetalle" Grid.Row="1">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Pedido ID" Binding="{Binding PedidoID}" Width="70"/>
+                                            <DataGridTextColumn Header="F. Pedido" Binding="{Binding FechaPedido, StringFormat=dd/MM/yyyy}" Width="90"/>
+                                            <DataGridTextColumn Header="Destinatario" Binding="{Binding Destinatario}" Width="160"/>
+                                            <DataGridTextColumn Header="Ciudad" Binding="{Binding CiudadDestino}" Width="100"/>
+                                            <DataGridTextColumn Header="Prod. ID" Binding="{Binding ProductoID}" Width="65"/>
+                                            <DataGridTextColumn Header="Nombre Producto" Binding="{Binding NombreProducto}" Width="180"/>
+                                            <DataGridTextColumn Header="Precio Unit." Binding="{Binding PrecioUnidad, StringFormat=C2}" Width="90"/>
+                                            <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="70"/>
+                                            <DataGridTextColumn Header="Descuento" Binding="{Binding Descuento, StringFormat=P0}" Width="80"/>
+                                            <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat=C2}" Width="100"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+        </TabControl>
+
+        <!-- FOOTER / STATUS BAR -->
+        <Border Grid.Row="3" Background="#1E293B" Padding="15,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Tecsup - Desarrollo de Aplicaciones Empresariales Avanzado | ADO .NET Semana 04" 
+                           Foreground="#94A3B8" FontSize="12"/>
+                <TextBlock Grid.Column="1" Text="Base de Datos: NeptunoDB" 
+                           Foreground="#E2E8F0" FontSize="12" FontWeight="SemiBold"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
